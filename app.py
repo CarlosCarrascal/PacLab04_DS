@@ -44,14 +44,36 @@ def index():
 
 @app.route('/registrar', methods=['POST'])
 def registrar():
-    dni = request.form['dni']
-    nombre = request.form['nombre']
-    apellido = request.form['apellido']
-    direccion = request.form['direccion']
-    telefono = request.form['telefono']
-    crear_persona(dni, nombre, apellido, direccion, telefono)
-    mensaje_confirmacion = "Registro Exitoso"
-    return redirect(url_for('index', mensaje_confirmacion=mensaje_confirmacion))
+    try:
+        # Obtener y validar datos
+        dni = request.form.get('dni', '').strip()
+        nombre = request.form.get('nombre', '').strip()
+        apellido = request.form.get('apellido', '').strip()
+        direccion = request.form.get('direccion', '').strip()
+        telefono = request.form.get('telefono', '').strip()
+        
+        # Validaciones del servidor
+        if not dni or not nombre or not apellido:
+            return jsonify({'error': 'Los campos DNI, nombre y apellido son requeridos'}), 400
+        
+        if not dni.isdigit() or len(dni) < 7 or len(dni) > 8:
+            return jsonify({'error': 'DNI inválido'}), 400
+        
+        # Crear persona
+        crear_persona(dni, nombre, apellido, direccion if direccion else None, telefono if telefono else None)
+        
+        # Si es una petición AJAX, devolver JSON
+        if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+            return jsonify({'success': True, 'message': 'Registro exitoso'})
+        
+        # Si es una petición normal, redirigir
+        return redirect(url_for('index'))
+        
+    except Exception as e:
+        print(f"Error al registrar: {e}")
+        if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+            return jsonify({'error': 'Error interno del servidor'}), 500
+        return redirect(url_for('index'))
 
 @app.route('/administrar')
 def administrar():

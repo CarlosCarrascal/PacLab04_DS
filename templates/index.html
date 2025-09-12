@@ -12,28 +12,33 @@
         
         <a href="/administrar" class="administrar-link">Administrar Registros</a>
         <div class="separator"></div>
-        <form action="/registrar" method="post">
+        <form id="registroForm" action="/registrar" method="post" novalidate>
             <div class="form-group">
-                <label for="dni">DNI:</label>
-                <input type="text" id="dni" name="dni" required>
+                <label for="dni">DNI: *</label>
+                <input type="text" id="dni" name="dni" required maxlength="8" pattern="[0-9]{7,8}">
+                <div class="error-message" id="dni-error">El DNI debe tener entre 7 y 8 dígitos</div>
             </div>
             <div class="form-group">
-                <label for="nombre">Nombre:</label>
-                <input type="text" id="nombre" name="nombre" required>
+                <label for="nombre">Nombre: *</label>
+                <input type="text" id="nombre" name="nombre" required maxlength="50" pattern="[A-Za-zÀ-ÿ\s]+">
+                <div class="error-message" id="nombre-error">El nombre es requerido y solo debe contener letras</div>
             </div>
             <div class="form-group">
-                <label for="apellido">Apellido:</label>
-                <input type="text" id="apellido" name="apellido" required>
+                <label for="apellido">Apellido: *</label>
+                <input type="text" id="apellido" name="apellido" required maxlength="50" pattern="[A-Za-zÀ-ÿ\s]+">
+                <div class="error-message" id="apellido-error">El apellido es requerido y solo debe contener letras</div>
             </div>
             <div class="form-group">
                 <label for="direccion">Dirección:</label>
-                <input type="text" id="direccion" name="direccion">
+                <input type="text" id="direccion" name="direccion" maxlength="100">
+                <div class="error-message" id="direccion-error"></div>
             </div>
             <div class="form-group">
                 <label for="telefono">Teléfono:</label>
-                <input type="text" id="telefono" name="telefono">
+                <input type="text" id="telefono" name="telefono" maxlength="15" pattern="[0-9\-\+\s\(\)]+">
+                <div class="error-message" id="telefono-error">El teléfono solo debe contener números, espacios, guiones y paréntesis</div>
             </div>
-            <button type="submit" onclick="mostrarMensaje()">Registrar</button>
+            <button type="submit" id="submitBtn">Registrar</button>
         </form>
     </div>
 
@@ -45,17 +50,159 @@
         </div>
     </div>
 
-    <!-- Script para manejar el modal -->
+    <!-- Script para validaciones y modal -->
     <script>
-        function mostrarMensaje() {
-            var modal = document.getElementById('modal');
-            modal.style.display = 'block';
-        }
-
-        function cerrarMensaje() {
-            var modal = document.getElementById('modal');
-            modal.style.display = 'none';
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('registroForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const modal = document.getElementById('modal');
+            
+            // Elementos del formulario
+            const dni = document.getElementById('dni');
+            const nombre = document.getElementById('nombre');
+            const apellido = document.getElementById('apellido');
+            const direccion = document.getElementById('direccion');
+            const telefono = document.getElementById('telefono');
+            
+            // Función para validar un campo individual
+            function validateField(field, errorId, customValidation = null) {
+                const errorElement = document.getElementById(errorId);
+                let isValid = true;
+                
+                // Limpiar estilos previos
+                field.classList.remove('error');
+                errorElement.style.display = 'none';
+                
+                // Validar si es requerido y está vacío
+                if (field.hasAttribute('required') && field.value.trim() === '') {
+                    isValid = false;
+                    errorElement.textContent = 'Este campo es requerido';
+                }
+                // Validar patrón si existe
+                else if (field.pattern && field.value.trim() !== '' && !new RegExp(field.pattern).test(field.value)) {
+                    isValid = false;
+                    // Mantener el mensaje de error predefinido
+                }
+                // Validación personalizada
+                else if (customValidation && field.value.trim() !== '') {
+                    const customError = customValidation(field.value);
+                    if (customError) {
+                        isValid = false;
+                        errorElement.textContent = customError;
+                    }
+                }
+                
+                // Mostrar error si no es válido
+                if (!isValid) {
+                    field.classList.add('error');
+                    errorElement.style.display = 'block';
+                }
+                
+                return isValid;
+            }
+            
+            // Validaciones personalizadas
+            function validateDNI(value) {
+                if (value.length < 7 || value.length > 8) {
+                    return 'El DNI debe tener entre 7 y 8 dígitos';
+                }
+                if (!/^\d+$/.test(value)) {
+                    return 'El DNI solo debe contener números';
+                }
+                return null;
+            }
+            
+            function validateName(value) {
+                if (value.length < 2) {
+                    return 'Debe tener al menos 2 caracteres';
+                }
+                if (!/^[A-Za-zÀ-ÿ\s]+$/.test(value)) {
+                    return 'Solo se permiten letras y espacios';
+                }
+                return null;
+            }
+            
+            function validatePhone(value) {
+                if (value.trim() !== '' && !/^[0-9\-\+\s\(\)]+$/.test(value)) {
+                    return 'Formato de teléfono inválido';
+                }
+                return null;
+            }
+            
+            // Validar formulario completo
+            function validateForm() {
+                let isFormValid = true;
+                
+                isFormValid &= validateField(dni, 'dni-error', validateDNI);
+                isFormValid &= validateField(nombre, 'nombre-error', validateName);
+                isFormValid &= validateField(apellido, 'apellido-error', validateName);
+                isFormValid &= validateField(direccion, 'direccion-error');
+                isFormValid &= validateField(telefono, 'telefono-error', validatePhone);
+                
+                // Habilitar/deshabilitar botón
+                submitBtn.disabled = !isFormValid;
+                
+                return isFormValid;
+            }
+            
+            // Validar en tiempo real
+            [dni, nombre, apellido, direccion, telefono].forEach(field => {
+                field.addEventListener('input', validateForm);
+                field.addEventListener('blur', validateForm);
+            });
+            
+            // Validar al enviar el formulario
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (validateForm()) {
+                    // Si todo está válido, enviar el formulario
+                    const formData = new FormData(form);
+                    
+                    // Deshabilitar botón durante el envío
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Registrando...';
+                    
+                    fetch('/registrar', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // Mostrar modal de éxito
+                            modal.style.display = 'block';
+                            // Limpiar formulario
+                            form.reset();
+                            // Restaurar botón
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'Registrar';
+                        } else {
+                            throw new Error('Error en el servidor');
+                        }
+                    })
+                    .catch(error => {
+                        alert('Error al registrar. Por favor, intente nuevamente.');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Registrar';
+                    });
+                }
+            });
+            
+            // Cerrar modal
+            document.querySelector('.close').addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            // Cerrar modal al hacer clic fuera
+            window.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // Validación inicial
+            validateForm();
+        });
     </script>
 </body>
 </html>
