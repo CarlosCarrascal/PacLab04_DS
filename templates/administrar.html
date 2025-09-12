@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Registros</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Administrar Registros</h1>
+        
+        <a href="/" class="administrar-link">Volver al Registro</a>
+        <div class="separator"></div>
+        
+        {% if registros %}
+        <div class="table-container">
+            <table class="registros-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>DNI</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Dirección</th>
+                        <th>Teléfono</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registro in registros %}
+                    <tr>
+                        <td>{{ registro[0] }}</td>
+                        <td>{{ registro[1] }}</td>
+                        <td>{{ registro[2] }}</td>
+                        <td>{{ registro[3] }}</td>
+                        <td>{{ registro[4] if registro[4] else 'No especificada' }}</td>
+                        <td>{{ registro[5] if registro[5] else 'No especificado' }}</td>
+                        <td>
+                            <form method="POST" action="/eliminar/{{ registro[1] }}" style="display: inline;">
+                                <button type="submit" class="btn-eliminar" 
+                                        onclick="return confirm('¿Estás seguro de eliminar a {{ registro[2] }} {{ registro[3] }}?')">
+                                    Eliminar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="no-registros">
+            <p>No hay registros disponibles.</p>
+            <a href="/" class="administrar-link">Agregar primer registro</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
