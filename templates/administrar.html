@@ -30,16 +30,16 @@
                 <tbody>
                     {% for registro in registros %}
                     <tr>
-                        <td>{{ registro[0] }}</td>
-                        <td>{{ registro[1] }}</td>
-                        <td>{{ registro[2] }}</td>
-                        <td>{{ registro[3] }}</td>
-                        <td>{{ registro[4] if registro[4] else 'No especificada' }}</td>
-                        <td>{{ registro[5] if registro[5] else 'No especificado' }}</td>
+                        <td>{{ registro.id }}</td>
+                        <td>{{ registro.dni }}</td>
+                        <td>{{ registro.nombre }}</td>
+                        <td>{{ registro.apellido }}</td>
+                        <td>{{ registro.direccion if registro.direccion else 'No especificada' }}</td>
+                        <td>{{ registro.telefono if registro.telefono else 'No especificado' }}</td>
                         <td>
-                            <form method="POST" action="/eliminar/{{ registro[1] }}" style="display: inline;">
+                            <form method="POST" action="/eliminar/{{ registro.dni }}" style="display: inline;">
                                 <button type="submit" class="btn-eliminar" 
-                                        onclick="return confirm('¿Estás seguro de eliminar a {{ registro[2] }} {{ registro[3] }}?')">
+                                        onclick="return confirm('¿Estás seguro de eliminar a {{ registro.nombre }} {{ registro.apellido }}?')">
                                     Eliminar
                                 </button>
                             </form>
